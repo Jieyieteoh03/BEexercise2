@@ -27,36 +27,40 @@ let authors = [
 ];
 
 // Your routing and controller code goes here
+//Books
 app.get("/books", (req, res) => {
   res.json(books);
 });
 
-app.get("/books/:id", (res, req) => {
+app.get("/books/:id", (req, res) => {
   const book = books.find((b) => parseInt(b.id) === parseInt(req.params.id));
-
   if (book) {
-    res.status(200).json(book);
+    const author = authors.find((author) => author.id === book.authorId);
+    res.status(200).json({ ...book, name: author.name, bio: author.bio });
   } else {
     res.status(400).json({ error: "ID unavailable" });
   }
 });
 
+//Reviews
 app.get("/reviews", (req, res) => {
   res.json(reviews);
 });
 
-app.get("/reviews/:id", (res, req) => {
+app.get("/reviews/:id", (req, res) => {
   const review = reviews.find(
     (r) => parseInt(r.id) === parseInt(req.params.id)
   );
 
   if (review) {
-    res.status(200).json(review);
+    const book = books.find((b) => b.id === review.bookId);
+    res.status(200).json({ ...review, book_title: book.title });
   } else {
     res.status(400).json({ error: "ID unavailable" });
   }
 });
 
+//Authors
 app.get("/authors", (req, res) => {
   res.json(authors);
 });
@@ -72,6 +76,21 @@ app.get("/authors/:id", (res, req) => {
     res.status(400).json({ error: "ID unavailable" });
   }
 });
+
+// //Books and Auhtor
+// app.get("/authorsbooks", (req, res) => {
+//   const booksAndAuthors = books.map((book) => {
+//     const author = authors.find((author) => author.id === book.authorId);
+//     return {
+//       ...book,
+//       author: {
+//         name: author.name,
+//         bio: author.bio,
+//       },
+//     };
+//   });
+//   res.json(booksAnd);
+// });
 
 app.get("/", (req, res) => {
   res.send(
