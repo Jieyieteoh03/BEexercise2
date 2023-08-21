@@ -27,7 +27,16 @@ let reservations = [
 // Your routing, authentication, and controller code goes here
 //Parks
 app.get("/parks", (req, res) => {
-  res.json(parks);
+  const { facilities } = req.query;
+  let filteredParks = [...parks];
+
+  if (facilities) {
+    filteredParks = filteredParks.filter((p) => {
+      return p.facilities.includes(facilities);
+    });
+  }
+
+  res.json(filteredParks);
 });
 
 app.get("/parks/:id", (req, res) => {
@@ -51,19 +60,23 @@ app.get("/visitors/:id", (req, res) => {
   );
 
   if (visitor) {
-    const reservationPast = reservations.find(
-      (reservation) =>
-        parseInt(reservation.id) === parseInt(visitor.pastReservations)
-    );
-    const reservationUpcoming = reservations.find(
-      (reservation) =>
-        parseInt(reservation.id) === parseInt(visitor.upcomingReservations)
-    );
     res.status(200).json({
       ...visitor,
       name: visitor.name,
-      upcomingReservations: [reservationPast],
-      pastReservations: [reservationUpcoming],
+      upcomingReservations: visitor.upcomingReservations.map(
+        (reservation_id) => {
+          const reservation = reservations.find((r) => r.id === reservation_id);
+          if (reservation) {
+            return reservation;
+          }
+        }
+      ),
+      pastReservations: visitor.pastReservations.map((reservation_id) => {
+        const reservation = reservations.find((r) => r.id === reservation_id);
+        if (reservation) {
+          return reservation;
+        }
+      }),
     });
   } else {
     res.status(400).json({ error: "ID unavailable" });
