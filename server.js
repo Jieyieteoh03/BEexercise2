@@ -1,103 +1,98 @@
 const express = require("express");
 const app = express();
 
-let books = [
+let parks = [
   {
     id: 1,
-    title: "Book One",
-    description: "Description of book one",
-    authorId: 1,
+    name: "Yellowstone National Park",
+    facilities: ["campgrounds", "visitor-center", "trails"],
   },
   {
     id: 2,
-    title: "Book Two",
-    description: "Description of book two",
-    authorId: 2,
+    name: "Zion National Park",
+    facilities: ["trails", "visitor-center"],
   },
 ];
 
-let reviews = [
-  { id: 1, text: "Amazing book!", bookId: 1 },
-  { id: 2, text: "Decent read.", bookId: 2 },
+let visitors = [
+  { id: 1, name: "John Doe", pastReservations: [1], upcomingReservations: [2] },
+  { id: 2, name: "Jane Smith", pastReservations: [], upcomingReservations: [] },
 ];
 
-let authors = [
-  { id: 1, name: "Author One", bio: "Bio of Author One" },
-  { id: 2, name: "Author Two", bio: "Bio of Author Two" },
+let reservations = [
+  { id: 1, parkId: 1, visitorId: 1, date: "2023-09-01" },
+  { id: 2, parkId: 2, visitorId: 1, date: "2023-10-01" },
 ];
 
-// Your routing and controller code goes here
-//Books
-app.get("/books", (req, res) => {
-  res.json(books);
+// Your routing, authentication, and controller code goes here
+//Parks
+app.get("/parks", (req, res) => {
+  res.json(parks);
 });
 
-app.get("/books/:id", (req, res) => {
-  const book = books.find((b) => parseInt(b.id) === parseInt(req.params.id));
-  if (book) {
-    const author = authors.find((author) => author.id === book.authorId);
-    res.status(200).json({ ...book, name: author.name, bio: author.bio });
+app.get("/parks/:id", (req, res) => {
+  const park = parks.find((p) => parseInt(p.id) === parseInt(req.params.id));
+
+  if (park) {
+    res.status(200).json(park);
   } else {
     res.status(400).json({ error: "ID unavailable" });
   }
 });
 
-//Reviews
-app.get("/reviews", (req, res) => {
-  res.json(reviews);
+//Visitors
+app.get("/visitors", (req, res) => {
+  res.json(visitors);
 });
 
-app.get("/reviews/:id", (req, res) => {
-  const review = reviews.find(
+app.get("/visitors/:id", (req, res) => {
+  const visitor = visitors.find(
+    (v) => parseInt(v.id) === parseInt(req.params.id)
+  );
+
+  if (visitor) {
+    const reservationPast = reservations.find(
+      (reservation) =>
+        parseInt(reservation.id) === parseInt(visitor.pastReservations)
+    );
+    const reservationUpcoming = reservations.find(
+      (reservation) =>
+        parseInt(reservation.id) === parseInt(visitor.upcomingReservations)
+    );
+    res.status(200).json({
+      ...visitor,
+      name: visitor.name,
+      upcomingReservations: [reservationPast],
+      pastReservations: [reservationUpcoming],
+    });
+  } else {
+    res.status(400).json({ error: "ID unavailable" });
+  }
+});
+
+//Reservations
+app.get("/reservations", (req, res) => {
+  res.json(reservations);
+});
+
+app.get("/reservations/:id", (req, res) => {
+  const reservation = reservations.find(
     (r) => parseInt(r.id) === parseInt(req.params.id)
   );
 
-  if (review) {
-    const book = books.find((b) => b.id === review.bookId);
-    res.status(200).json({ ...review, book_title: book.title });
+  if (reservation) {
+    res.status(200).json(reservation);
   } else {
     res.status(400).json({ error: "ID unavailable" });
   }
 });
-
-//Authors
-app.get("/authors", (req, res) => {
-  res.json(authors);
-});
-
-app.get("/authors/:id", (res, req) => {
-  const author = authors.find(
-    (a) => parseInt(a.id) === parseInt(req.params.id)
-  );
-
-  if (author) {
-    res.status(200).json(author);
-  } else {
-    res.status(400).json({ error: "ID unavailable" });
-  }
-});
-
-// //Books and Auhtor
-// app.get("/authorsbooks", (req, res) => {
-//   const booksAndAuthors = books.map((book) => {
-//     const author = authors.find((author) => author.id === book.authorId);
-//     return {
-//       ...book,
-//       author: {
-//         name: author.name,
-//         bio: author.bio,
-//       },
-//     };
-//   });
-//   res.json(booksAnd);
-// });
 
 app.get("/", (req, res) => {
   res.send(
-    '<a href="/books">Books</a><a href="/reviews">Reviews</a><a href="/authors">Authors</a>'
+    '<a href="/parks">Parks</a><a href="/visitors">Visitors</a><a href="/reservations">Reservations</a>'
   );
 });
 
-app.listen(5001, () => {
-  console.log(`Bookstore app running on http://localhost:5001`);
+app.listen(5002, () => {
+  console.log(`Server running on http://localhost:5002`);
 });
